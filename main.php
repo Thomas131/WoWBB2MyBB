@@ -9,16 +9,16 @@
 /**
  * Includes
  */
-require_once("inc/db.class.php");								//Database-Class; extended from PDO with 2 functions of the PHPBB3 Database-Abstraction-Layer
-require_once("inc/convert.class.php");							//The Converter-prototype which is needed for for all convert_-Files
-require_once("inc/convert_user.class.php");						//The User-converter-class
-require_once("inc/convert_pm.class.php");						//The PM-converter-class
-require_once("inc/convert_threads.class.php");					//The Threads-converter-class which needs the post-converter
-require_once("inc/convert_posts.class.php");					//The Posts-converter
-require_once("inc/convert_threadsubscriptions.class.php");		//The Threadsubscription-converter-class
-require_once("inc/mybb_functions.php");							//The functions.php of MyBB
-require_once("inc/Encoding.php");								//converts Charsets (Class not written by me)
-require_once("config.php");										//Database-config
+require_once("inc/db.class.php");                               //Database-Class; extended from PDO with 2 functions of the PHPBB3 Database-Abstraction-Layer
+require_once("inc/convert.class.php");                          //The Converter-prototype which is needed for for all convert_-Files
+require_once("inc/convert_user.class.php");                     //The User-converter-class
+require_once("inc/convert_pm.class.php");                       //The PM-converter-class
+require_once("inc/convert_threads.class.php");                  //The Threads-converter-class which needs the post-converter
+require_once("inc/convert_posts.class.php");                    //The Posts-converter
+require_once("inc/convert_threadsubscriptions.class.php");      //The Threadsubscription-converter-class
+require_once("inc/mybb_functions.php");                         //The functions.php of MyBB
+require_once("inc/Encoding.php");                               //converts Charsets (Class not written by me)
+require_once("config.php");                                     //Database-config
 
 /**
  * Database-config
