@@ -11,7 +11,7 @@ class convert_users extends convert_prototype {
 	 * @var array $my_userfields Dataset in MyBB of the custom profile fields as associative Array which will be finally inserted into the MyBB-Database
 	 * @var array $wow_users Thread-Database-Entry of WoWBB as associative Array
 	 * @var array $cache_wow_visited_topics_pointer file-pointer of cache-file (php-file)
-	 * @var array $cache_wow_visited_topics array with mybb as key and an array of wowbb Threadids as keys and Wowbb time as values
+	 * @var array $cache_wow_visited_topics array($WoWBB-UID => array($WoWBB-Thread-ID => $Timestamp [, ...] ) [, ...] )
 	 */
 	public $my_users = array();
 	public $my_userfields = array();
@@ -19,11 +19,23 @@ class convert_users extends convert_prototype {
 	public $cache_wow_visited_topics_pointer;
 	public $cache_wow_visited_topics = array();
 
+	/**
+	 * Constructor which opens Cache-File for visited Threads and makes it executable
+	 * 
+	 * @param void
+	 * @return void
+	 */
 	public function __construct() {
 		$this->cache_wow_visited_topics_pointer = fopen("cache_wow_visited_topics.php","a");
 		fwrite($this->cache_wow_visited_topics_pointer, '<?php if(!isset($cache_wow_visited_topics)) { $cache_wow_visited_topics = array();}');
 	}
 
+	/**
+	 * Destructor which securely closes visited-Threads-Cachefile
+	 * 
+	 * @param void
+	 * @return void
+	 */
 	public function __destruct() {
 		if(is_resource($this->cache_wow_visited_topics_pointer)) {
 			fwrite($this->cache_wow_visited_topics_pointer," ?>");
