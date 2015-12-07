@@ -2,20 +2,22 @@
 /**
  * User-Converting-Class
  *
- * @author Thomas131<github@ttmail.at.vu>
+ * @author Thomas131 <github@ttmail.at.vu>
  * @license CC0
  */
 class convert_users extends convert_prototype {
 	/**
-	 * @var
+	 * @var array $my_users User Dataset in MyBB as associative Array which will be finally inserted into the MyBB-Database
+	 * @var array $my_userfields Dataset in MyBB of the custom profile fields as associative Array which will be finally inserted into the MyBB-Database
+	 * @var array $wow_users Thread-Database-Entry of WoWBB as associative Array
+	 * @var array $cache_wow_visited_topics_pointer file-pointer of cache-file (php-file)
+	 * @var array $cache_wow_visited_topics array with mybb as key and an array of wowbb Threadids as keys and Wowbb time as values
 	 */
 	public $my_users = array();
 	public $my_userfields = array();
 	protected $wow_users = array();
 	public $cache_wow_visited_topics_pointer;
 	public $cache_wow_visited_topics = array();
-
-	protected $visited_forums_cache;
 
 	public function __construct() {
 		$this->cache_wow_visited_topics_pointer = fopen("cache_wow_visited_topics.php","a");
@@ -340,13 +342,14 @@ class convert_users extends convert_prototype {
 
 	public function import_cache_wow_visited_topics() {
 		include("cache_wow_visited_topics.php");
-		$this->cache_wow_visited_topics = $cache_wow_visited_topics;
+		$this->cache_wow_visited_topics =& $cache_wow_visited_topics;
 	}
 
 	public function insert_my_threadsread() {
+		global $db_new;
+
 		echo "\n\nConverting Threadsread\n";
 		foreach($this->cache_wow_visited_topics AS $uid => $threads_info) {
-			global $db_new;
 			foreach($threads_info AS $wow_tid => $wow_time) {
 
 				$my_tid = $this->tid2my($wow_tid,0);
