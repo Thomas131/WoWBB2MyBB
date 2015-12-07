@@ -10,12 +10,14 @@ class convert_users extends convert_prototype {
 	 * @var array $my_users User Dataset in MyBB as associative Array which will be finally inserted into the MyBB-Database
 	 * @var array $my_userfields Dataset in MyBB of the custom profile fields as associative Array which will be finally inserted into the MyBB-Database
 	 * @var array $wow_users Thread-Database-Entry of WoWBB as associative Array
+	 * @var array $cache_wow_watched_forums array($WoWBB-UID => array($WoWBB-Forum-ID [, ...] ) [, ...] )
 	 * @var array $cache_wow_visited_topics_pointer file-pointer of cache-file (php-file)
 	 * @var array $cache_wow_visited_topics array($WoWBB-UID => array($WoWBB-Thread-ID => $Timestamp [, ...] ) [, ...] )
 	 */
 	public $my_users = array();
 	public $my_userfields = array();
 	protected $wow_users = array();
+	protected $cache_wow_watched_forums = array();
 	public $cache_wow_visited_topics_pointer;
 	public $cache_wow_visited_topics = array();
 
@@ -43,6 +45,14 @@ class convert_users extends convert_prototype {
 		}
 	}
 
+	/**
+	 * Imports the watched forums from all users into cache-array
+	 * 
+	 * because of the little use of this function, all users can be imported without having Memory-Problems
+	 * 
+	 * @param void
+	 * @return bool true
+	 */
 	public function import_cache_wow_watched_forums() {
 
 		global $db_old;
@@ -53,46 +63,54 @@ class convert_users extends convert_prototype {
 		return true;
 	}
 
+	/**
+	 * Init $this->my_users, $this->my_userfields and $this->wow_users
+	 *
+	 * (set the values in $this->my_users and $my_userfields, that doesn't change)
+	 *
+	 * @param void
+	 * @return void
+	 */
 	public function init_my() {
 		$this->wow_users = array();
 		$this->my_users = array(
-			//uid						//DONE
-			//wowbb_user_id				//DONE
-			//username					//DONE
-			//password					//DONE
+			//uid                                           //Auto-Increment
+			//wowbb_user_id
+			//username
+			//password
 			"salt" => "",
 			"loginkey" => "",
-			//email						//DONE
-			//"postnum" => 0,			//COMPLEX&DONE
+			//email
+			//"postnum" => 0,
 			"threadnum" => 0,
 			"avatar" => "",
 			"avatardimensions" => "",
 			"avatartype" => "",
-			//usergroup					//DONE
+			//usergroup
 			"additionalgroups" => "",
 			"displaygroup" => 0,
 			"usertitle" => "",
-			//regdate					//DONE
-			//lastactive				//DONE
-			//lastvisit					//DONE
-			//lastpost					//DONE & COMPLEX
-			//website					//DONE
-			//icq						//DONE
-			//aim						//DONE
+			//regdate
+			//lastactive
+			//lastvisit
+			//lastpost
+			//website
+			//icq
+			//aim
 			"yahoo" => "",
 			"skype" => "",
 			"google" => "",
-			//birthday					//DONE
-			"birthdayprivacy" => "none",//yes, Really
+			//birthday
+			"birthdayprivacy" => "none",                    //yes, Really
 			"signature" => "",
-			//allownotices				//DONE
-			//hideemail					//DONE
+			//allownotices
+			//hideemail
 			"subscriptionmethod" => 2,
-			//invisible					//DONE
-			//receivepms				//DONE
+			//invisible
+			//receivepms
 			"receivefrombuddy" => 0,
 			"pmnotice" => 1,
-			//pmnotify					//DONE
+			//pmnotify
 			"buddyrequestspm" => 1,
 			"buddyrequestsauto" => 0,
 			"threadmode" => "linear",
@@ -108,7 +126,7 @@ class convert_users extends convert_prototype {
 			"dateformat" => 0,
 			"timeformat" => 0,
 			"timezone" => 1,
-			"dst" => 1,					//AUFPASSEN!!! Ist bei Konvertierungszeitpunkt Sommerzeit?
+			"dst" => 1,                                     //Attention: Is is summertime when converting?
 			"dstcorrection" => 2,
 			"buddylist" => "",
 			"ignorelist" => "",
@@ -123,12 +141,12 @@ class convert_users extends convert_prototype {
 			"referrals" => 0,
 			"reputation" => 0,
 			"regip" => "",
-			//lastip					//COMPLEX&DONE
+			//lastip
 			"language" => "",
 			"timeonline"  => 0,
 			"showcodebuttons" => 1,
-			//totalpms					//COMPLEX&DONE
-			//unreadpms					//COMPLEX&DONE
+			//totalpms
+			//unreadpms
 			"warningpoints" => 0,
 			"moderateposts" => 0,
 			"moderationtime" => 0,
@@ -138,18 +156,24 @@ class convert_users extends convert_prototype {
 			"suspendsigtime" => 0,
 			"coppauser" => 0,
 			"classicpostbit" => 1,
-			"loginattempts" => 1, //Yes, 1 is the default value!?
+			"loginattempts" => 1,                           //Yes, 1 is the default value!?
 			"usernotes" => "",
 			"sourceeditor" => 1
 		);
 
 		$this->my_userfields = array(
-			//ufid								//My-UID
-			//fid1								//Land
-			"fid3" => "will ich nicht sagen"	//Geschlecht
+			//ufid						//MyBB-UID
+			//fid1						//Country
+			"fid3" => " - "                                 //Gender
 		);
 	}
 
+	/*
+	 * Import the WoWBB-Database-Entry into $this->my_users
+	 *
+	 * @param int|null $wow_id if set, it selects and converts exactly the Subscription with this ID, if not set, it converts a random one, probably the first unconverted one.
+	 * @return bool true
+	 */
 	public function import_wowbb_db($wow_id=Null) {
 
 		global $db_old;
@@ -164,6 +188,12 @@ class convert_users extends convert_prototype {
 		return true;
 	}
 
+	/**
+	 * Imports the visited topics of a user into Memory and into File-Cache
+	 * 
+	 * @param void
+	 * @return void
+	 */
 	public function import_wowbb_visited() {
 		$replace_array = array();
 		if($this->wow_users["user_visited_topics"])
@@ -180,6 +210,12 @@ class convert_users extends convert_prototype {
 		fwrite($this->cache_wow_visited_topics_pointer,'$cache_wow_visited_topics['.(int)$this->wow_users["user_id"].'] = '.var_export($replace_array, true)."; ");
 	}
 
+	/**
+	 * Imports the time and the IP of the last post of the user
+	 * 
+	 * @param void
+	 * @return bool true
+	 */
 	public function import_wowbb_last_post_and_ip() {
 		global $db_old;
 		$result = $db_old->query("SELECT UNIX_TIMESTAMP(`post_date_time`) AS `post_date_time`, `post_ip` FROM `wowbb_posts` WHERE `user_id` = ".(int)$this->wow_users["user_id"]." ORDER BY `post_date_time` DESC LIMIT 0 , 1;");
@@ -196,6 +232,12 @@ class convert_users extends convert_prototype {
 		return true;
 	}
 
+	/**
+	 * Imports the number of posts of a user
+	 * 
+	 * @param void
+	 * @return bool true
+	 */
 	public function import_wowbb_postnum() {
 		global $db_old;
 		$this->my_users["postnum"] = $db_old->query("SELECT COUNT(*)  FROM `wowbb_posts` WHERE `user_id` = ".(int)$this->wow_users["user_id"].";")->fetch(PDO::FETCH_NUM)[0];
@@ -203,6 +245,12 @@ class convert_users extends convert_prototype {
 		return true;
 	}
 
+	/**
+	 * Imports the total number and the unread number of PMs in the user's Inbox
+	 * 
+	 * @param void
+	 * @return bool true
+	 */
 	public function import_wowbb_pms() {
 		global $db_old;
 		$this->my_users["totalpms"] = $db_old->query("SELECT COUNT(*)  FROM `wowbb_pm` WHERE `user_id` = ".(int)$this->wow_users["user_id"]." AND `pm_folder_id` = 100")->fetch(PDO::FETCH_NUM)[0];
@@ -211,6 +259,12 @@ class convert_users extends convert_prototype {
 		return true;
 	}
 
+	/**
+	 * Converts the values, that are easy to convert from $this->wow_users to $this->my_users
+	 *
+	 * @param void
+	 * @return void
+	 */
 	public function import_wowbb_simple() {
 		if(!isset($this->wow_users["user_visited"])) $this->import_wowbb_visited();
 
@@ -233,6 +287,12 @@ class convert_users extends convert_prototype {
 		$this->my_users["icq"] = ($this->wow_users["user_icq"] == "")?0:$this->wow_users["user_icq"];
 	}
 
+	/**
+	 * Converts the region, where the user lifes based on the city, region and country entered in WoWBB
+	 *
+	 * @param void
+	 * @return void
+	 */
 	public function import_wow_region() {
 		$region = "";
 
@@ -243,7 +303,13 @@ class convert_users extends convert_prototype {
 		$this->my_userfields["fid1"] = $region;
 	}
 
-	public function import_forum_subscribed() {
+	/**
+	 * Inserts the forum-IDs which are subscribed by the user
+	 *
+	 * @param void
+	 * @return bool true
+	 */
+	public function insert_forum_subscribed() {
 		if(isset($this->cache_wow_watched_forums[$this->wow_users["user_id"]])) {
 			global $db_new;
 			$prepared = $db_new->prepare("INSERT INTO `de_forumsubscriptions` (`fsid`, `fid`, `uid`) VALUES (NULL, ?, ?);");
@@ -258,6 +324,12 @@ class convert_users extends convert_prototype {
 		return true;
 	}
 
+	/**
+	 * Inserts all the Data which can already be inserted into the Database (User, profile-fields, subscribed Forums)
+	 *
+	 * @param void
+	 * @return void
+	 */
 	public function insert_my_first_run() {
 		global $db_new;
 		$old_uid = $db_new->query("SELECT `uid`  FROM `de_users` WHERE `username` LIKE ".$db_new->quote($this->my_users["username"]).";");
@@ -295,9 +367,15 @@ class convert_users extends convert_prototype {
 		 * Forumsubscriptions
 		 */
 
-		 $this->import_forum_subscribed();
+		 $this->insert_forum_subscribed();
 	}
 
+	/**
+	 * Inserts all the Forum-IDs and when they were read by the user
+	 *
+	 * @param void
+	 * @return void
+	 */
 	public function insert_my_forumsread() {
 		if($this->wow_users["user_visited_topics"] == "") return true;
 
@@ -322,6 +400,12 @@ class convert_users extends convert_prototype {
 		}
 	}
 
+	/**
+	 * Deletes Dataset in WoWBB to prevent reconverting on restart
+	 *
+	 * @param void
+	 * @return void
+	 */
 	public function del_wow() {
 		global $db_old;
 		if(!$res = $db_old->query("DELETE FROM `wowbb_users` WHERE `user_id` = '".(int)$this->wow_users["user_id"]."';")) {
@@ -334,6 +418,12 @@ class convert_users extends convert_prototype {
 		echo "erfolgreich gelöscht ...";
 	}
 
+	/**
+	 * Function which does the whole process of converting which can be done before converting Threads and Posts; called in main.php
+	 *
+	 * @param void
+	 * @return void
+	 */
 	public function do_all_first_run() {
 		$this->import_cache_wow_watched_forums();
 		$this->init_my();
@@ -352,11 +442,23 @@ class convert_users extends convert_prototype {
 		}
 	}
 
+	/**
+	 * Imports the visited topics from File-Cache into $this->cache_wow_visited_topics
+	 *
+	 * @param void
+	 * @return void
+	 */
 	public function import_cache_wow_visited_topics() {
 		include("cache_wow_visited_topics.php");
 		$this->cache_wow_visited_topics =& $cache_wow_visited_topics;
 	}
 
+	/**
+	 * Inserts the read threads into the Database
+	 *
+	 * @param void
+	 * @return void
+	 */
 	public function insert_my_threadsread() {
 		global $db_new;
 
@@ -385,6 +487,12 @@ class convert_users extends convert_prototype {
 		unlink("cache_wow_visited_topics.php");
 	}
 
+	/**
+	 * Function which does the whole converting which can only done after converting Threads and Posts; called in main.php
+	 *
+	 * @param void
+	 * @return void
+	 */
 	public function do_all_secound_run() {
 		$this->import_cache_wow_visited_topics();
 		$this->insert_my_threadsread();

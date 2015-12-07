@@ -202,7 +202,7 @@ class convert_threads extends convert_prototype {
 	}
 
 	/**
-	 * Function which does the whole process of converting and is called in main.php; dies on Error
+	 * Function which does the whole process of converting and is called in main.php
 	 *
 	 * @param void
 	 * @return void
