@@ -1,6 +1,6 @@
-This converter is a Command-Line PHP-Tool to convert a WoWBB-Forum to MyBB. It was just programmed for one-time-use and so some values are hardcoded. In addition, the following things were neglected:
+This converter is a Command-Line PHP-Tool to convert a WoWBB-Forum to MyBB. It was just programmed for one-time-use and uploaded for portfolio-sake and so some values are hardcoded. In addition, the following things were neglected:
 * Speed
-* unused or less-used functions like Attachments, Avatars
+* unused or less-used forum-functions like Attachments, Avatars
 
 Used:
 =====
@@ -11,6 +11,6 @@ Used:
 
 My Goals while programming were:
 ================================
-* instant die() when having unwanted values; strict checks
 * possibility to die everytime (for example when having unexpected values) and continue converting when restarting
+* instant die() when having unwanted values; strict checks
 * strict class-seperation (except the included mybb-functions)
