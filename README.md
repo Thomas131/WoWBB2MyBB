@@ -14,5 +14,5 @@ Used:
 My Goals while programming were:
 --------------------------------
 * possibility to die everytime (for example when having unexpected values) and continue converting when restarting
-* instant die() when having unwanted values; strict checks
+* strict checks; instant die() when having unwanted values
 * strict class-seperation (except the included mybb-functions)
